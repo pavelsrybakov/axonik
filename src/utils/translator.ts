@@ -11,8 +11,6 @@ const USE_API = true; // Set to false to use local model (requires @xenova/trans
 // Alternative: HuggingFace (requires auth token) or Google Translate (requires API key)
 const MYMEMORY_API_BASE = 'https://api.mymemory.translated.net';
 // Use Vite proxy in development to avoid CORS issues
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error - Vite provides import.meta.env
 const isDevelopment =
 	import.meta.env?.DEV || import.meta.env?.MODE === 'development';
 const MYMEMORY_API = isDevelopment
