@@ -163,8 +163,15 @@ const OCRTest = () => {
 				</div>
 
 				<div className='flex flex-col gap-8'>
-					<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md'>
-						{!image ? (
+					{error && (
+						<div className='bg-red-100 text-red-700 px-6 py-4 rounded-xl flex items-center gap-3 border border-red-200'>
+							<X size={20} />
+							{error}
+						</div>
+					)}
+
+					{!image ? (
+						<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md'>
 							<div
 								className='border-2 border-dashed border-border rounded-xl py-16 px-8 text-center cursor-pointer transition-all bg-background hover:border-primary hover:bg-primary/5 hover:-translate-y-0.5'
 								onClick={() => fileInputRef.current?.click()}
@@ -184,88 +191,93 @@ const OCRTest = () => {
 									className='hidden'
 								/>
 							</div>
-						) : (
-							<div className='flex flex-col gap-6'>
-								<div className='relative rounded-xl overflow-hidden border border-border bg-background max-h-[500px] flex items-center justify-center'>
-									<img
-										src={image}
-										alt='Uploaded'
-										className='max-w-full max-h-[500px] object-contain block'
-									/>
-									<button
-										className='absolute top-4 right-4 bg-black/70 text-white border-none rounded-full w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:bg-black/90 hover:scale-110'
-										onClick={handleClear}
-										title='Remove image'
-									>
-										<X size={20} />
-									</button>
-								</div>
-								<div className='flex flex-col sm:flex-row gap-4 justify-center'>
-									<button
-										className='flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 border-none text-base'
-										onClick={handleExtractText}
-										disabled={isProcessing}
-									>
-										{isProcessing ? (
-											<>
-												<Loader className='animate-spin' size={20} />
-												Processing... {progress}%
-											</>
-										) : (
-											<>
-												<FileText size={20} />
-												Extract Text
-											</>
-										)}
-									</button>
-									<button
-										className='flex items-center justify-center gap-2 bg-background text-primary border-2 border-primary px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed border-none text-base'
-										onClick={() => fileInputRef.current?.click()}
-										disabled={isProcessing}
-									>
-										<ImageIcon size={20} />
-										Change Image
-									</button>
-								</div>
-								<input
-									ref={fileInputRef}
-									type='file'
-									accept='image/*'
-									onChange={handleImageUpload}
-									className='hidden'
-								/>
-							</div>
-						)}
-					</div>
-
-					{error && (
-						<div className='bg-red-100 text-red-700 px-6 py-4 rounded-xl flex items-center gap-3 border border-red-200'>
-							<X size={20} />
-							{error}
 						</div>
-					)}
-
-					{extractedText && (
-						<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md'>
-							<div className='flex items-center gap-3 mb-6'>
-								<FileText size={20} className='text-primary' />
-								<h3 className='text-2xl font-bold text-text-primary'>
-									Extracted Text
-								</h3>
-							</div>
-							<div className='bg-background border border-border rounded-xl p-6 mb-4 max-h-[400px] overflow-y-auto'>
-								<pre className='m-0 font-mono text-[0.9375rem] leading-relaxed text-text-primary whitespace-pre-wrap break-words'>
-									{extractedText}
-								</pre>
-							</div>
-							<button
-								className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)]'
-								onClick={() => {
-									navigator.clipboard.writeText(extractedText);
-								}}
+					) : (
+						<div
+							className={`flex flex-col ${
+								extractedText ? 'lg:flex-row' : ''
+							} gap-6`}
+						>
+							<div
+								className={`bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md ${
+									extractedText ? 'lg:flex-1' : 'w-full'
+								}`}
 							>
-								Copy to Clipboard
-							</button>
+								<div className='flex flex-col gap-6'>
+									<div className='relative rounded-xl overflow-hidden border border-border bg-background max-h-[500px] flex items-center justify-center'>
+										<img
+											src={image}
+											alt='Uploaded'
+											className='max-w-full max-h-[500px] object-contain block'
+										/>
+										<button
+											className='absolute top-4 right-4 bg-black/70 text-white border-none rounded-full w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:bg-black/90 hover:scale-110'
+											onClick={handleClear}
+											title='Remove image'
+										>
+											<X size={20} />
+										</button>
+									</div>
+									<div className='flex flex-col sm:flex-row gap-4 justify-center'>
+										<button
+											className='flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 border-none text-base'
+											onClick={handleExtractText}
+											disabled={isProcessing}
+										>
+											{isProcessing ? (
+												<>
+													<Loader className='animate-spin' size={20} />
+													Processing... {progress}%
+												</>
+											) : (
+												<>
+													<FileText size={20} />
+													Extract Text
+												</>
+											)}
+										</button>
+										<button
+											className='flex items-center justify-center gap-2 bg-background text-primary border-2 border-primary px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed border-none text-base'
+											onClick={() => fileInputRef.current?.click()}
+											disabled={isProcessing}
+										>
+											<ImageIcon size={20} />
+											Change Image
+										</button>
+									</div>
+									<input
+										ref={fileInputRef}
+										type='file'
+										accept='image/*'
+										onChange={handleImageUpload}
+										className='hidden'
+									/>
+								</div>
+							</div>
+
+							{extractedText && (
+								<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md lg:flex-1'>
+									<div className='flex items-center gap-3 mb-6'>
+										<FileText size={20} className='text-primary' />
+										<h3 className='text-2xl font-bold text-text-primary'>
+											Extracted Text
+										</h3>
+									</div>
+									<div className='bg-background border border-border rounded-xl p-6 mb-4 max-h-[400px] overflow-y-auto'>
+										<pre className='m-0 font-mono text-[0.9375rem] leading-relaxed text-text-primary whitespace-pre-wrap break-words'>
+											{extractedText}
+										</pre>
+									</div>
+									<button
+										className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)]'
+										onClick={() => {
+											navigator.clipboard.writeText(extractedText);
+										}}
+									>
+										Copy to Clipboard
+									</button>
+								</div>
+							)}
 						</div>
 					)}
 				</div>
