@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import ConsentDeclined from './components/ConsentDeclined';
 import ConsentModal from './components/ConsentModal';
 import Features from './components/Features';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import OCRTest from './components/OCRTest';
+const OCRTest = lazy(() => import('./components/OCRTest'));
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 
@@ -89,7 +89,20 @@ function App() {
 			{currentView === 'chat' && (
 				<ChatInterface onBack={() => setCurrentView('home')} />
 			)}
-			{currentView === 'ocr' && <OCRTest />}
+			{currentView === 'ocr' && (
+				<Suspense
+					fallback={
+						<div className='flex-1 flex items-center justify-center min-h-[calc(100vh-80px)]'>
+							<div className='text-center'>
+								<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+								<p className='text-text-secondary'>Loading OCR tools...</p>
+							</div>
+						</div>
+					}
+				>
+					<OCRTest />
+				</Suspense>
+			)}
 		</div>
 	);
 }
