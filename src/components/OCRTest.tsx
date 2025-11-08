@@ -4,12 +4,14 @@ import {
 	Image as ImageIcon,
 	Languages,
 	Loader,
+	Shield,
 	Sparkles,
 	Upload,
 	X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { createWorker } from 'tesseract.js';
+import { detectAndMaskPersonalInformation } from '../utils/piiDetector';
 import { correctSpelling } from '../utils/spellChecker';
 import { isRussianText, translateRussianToEnglish } from '../utils/translator';
 
@@ -42,6 +44,8 @@ const OCRTest = () => {
 	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
 	const [useSpellCheck, setUseSpellCheck] = useState<boolean>(true);
 	const [autoTranslate, setAutoTranslate] = useState<boolean>(true); // Default to true for better UX
+	const [maskPII, setMaskPII] = useState<boolean>(true); // Default to true for privacy
+	const [isMaskingPII, setIsMaskingPII] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,8 +111,21 @@ const OCRTest = () => {
 			// Apply spell checking if enabled (works for all selected languages)
 			let finalText = text;
 			if (useSpellCheck) {
-				setProgress(95); // Update progress
+				setProgress(90); // Update progress
 				finalText = await correctSpelling(text, langString);
+			}
+
+			// Apply PII masking if enabled
+			if (maskPII) {
+				setProgress(95); // Update progress
+				try {
+					console.log('🔄 Attempting to mask PII...');
+					finalText = await detectAndMaskPersonalInformation(finalText);
+					console.log('✅ PII masking completed');
+				} catch (err) {
+					console.error('❌ PII masking failed:', err);
+					// Continue with text even if PII masking fails (silent fail for hackathon)
+				}
 			}
 
 			setExtractedText(finalText);
@@ -184,6 +201,27 @@ const OCRTest = () => {
 		} finally {
 			setIsTranslating(false);
 			setTranslationProgress(0);
+		}
+	};
+
+	const handleMaskPII = async () => {
+		if (!extractedText) return;
+
+		setIsMaskingPII(true);
+		setError(null);
+
+		try {
+			console.log('🔄 Manually masking PII...');
+			const maskedText = await detectAndMaskPersonalInformation(extractedText);
+			setExtractedText(maskedText);
+			console.log('✅ Manual PII masking completed');
+		} catch (err) {
+			console.error('❌ Manual PII masking failed:', err);
+			setError(
+				'Failed to mask personal information. Check console for details.'
+			);
+		} finally {
+			setIsMaskingPII(false);
 		}
 	};
 
@@ -325,6 +363,21 @@ const OCRTest = () => {
 							<label className='flex items-center gap-2 cursor-pointer justify-center'>
 								<input
 									type='checkbox'
+									checked={maskPII}
+									onChange={(e) => setMaskPII(e.target.checked)}
+									disabled={isProcessing}
+									className='w-4 h-4 text-primary border-border rounded focus:ring-primary'
+								/>
+								<div className='flex items-center gap-2'>
+									<Shield size={16} className='text-primary' />
+									<span className='text-sm font-medium text-text-primary'>
+										Mask personal information
+									</span>
+								</div>
+							</label>
+							<label className='flex items-center gap-2 cursor-pointer justify-center'>
+								<input
+									type='checkbox'
 									checked={autoTranslate}
 									onChange={(e) => setAutoTranslate(e.target.checked)}
 									disabled={isProcessing}
@@ -447,18 +500,37 @@ const OCRTest = () => {
 											{extractedText}
 										</pre>
 									</div>
-									<div className='flex gap-3'>
-										<button
-											className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
-											onClick={() => {
-												navigator.clipboard.writeText(extractedText);
-											}}
-										>
-											Copy Original
-										</button>
+									<div className='flex flex-col gap-3'>
+										<div className='flex gap-3'>
+											<button
+												className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+												onClick={() => {
+													navigator.clipboard.writeText(extractedText);
+												}}
+											>
+												Copy Text
+											</button>
+											<button
+												className='flex items-center justify-center gap-2 bg-accent text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:opacity-90 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+												onClick={handleMaskPII}
+												disabled={isMaskingPII || isProcessing}
+											>
+												{isMaskingPII ? (
+													<>
+														<Loader className='animate-spin' size={16} />
+														Masking PII...
+													</>
+												) : (
+													<>
+														<Shield size={16} />
+														Mask Personal Info
+													</>
+												)}
+											</button>
+										</div>
 										{isRussianText(extractedText) && (
 											<button
-												className='flex items-center justify-center gap-2 bg-primary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+												className='flex items-center justify-center gap-2 bg-primary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
 												onClick={() => handleTranslate()}
 												disabled={isTranslating || isProcessing}
 											>

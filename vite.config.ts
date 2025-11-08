@@ -17,6 +17,21 @@ export default defineConfig({
 					return `/get${query}`;
 				},
 			},
+			// Proxy for Hugging Face Inference API to avoid CORS issues
+			'/api/hf': {
+				target: 'https://router.huggingface.co',
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api\/hf/, '/hf-inference'),
+				configure: (proxy) => {
+					proxy.on('proxyReq', (proxyReq) => {
+						// Add Authorization header if token is available
+						const token = process.env.VITE_HF_TOKEN;
+						if (token) {
+							proxyReq.setHeader('Authorization', `Bearer ${token}`);
+						}
+					});
+				},
+			},
 		},
 	},
 	plugins: [
