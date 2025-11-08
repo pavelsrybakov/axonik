@@ -1,32 +1,32 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import ConsentDeclined from './components/ConsentDeclined';
 import ConsentModal from './components/ConsentModal';
 import Features from './components/Features';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import OCRTest from './components/OCRTest';
+const OCRTest = lazy(() => import('./components/OCRTest'));
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 
-type View = 'home' | 'chat' | 'ocr' | 'consent-declined';
+type View = 'home' | 'chat' | 'ocr' | 'consent-declined' | 'privacy-policy' | 'terms';
 
 function App() {
 	const [currentView, setCurrentView] = useState<View>('home');
 	const [showConsentModal, setShowConsentModal] = useState(false);
 
-	// Check localStorage on initial load to restore consent state
+	// Check consent
 	useEffect(() => {
 		const isAccepted = localStorage.getItem('isAccepted');
 		if (isAccepted === 'true') {
 			setShowConsentModal(false);
 		} else if (isAccepted === 'false') {
-			// If consent was declined, redirect to declined page
 			setCurrentView('consent-declined');
 			setShowConsentModal(false);
 		} else {
-			// No consent given yet, show modal
 			setShowConsentModal(true);
 		}
-	}, []);
+	}, [currentView]);
 
 	// Handle URL parameters for PWA shortcuts
 	useEffect(() => {
@@ -48,9 +48,16 @@ function App() {
 		setCurrentView('consent-declined');
 	};
 
-	// If consent was declined, show the declined page (no header)
-	if (currentView === 'consent-declined') {
-		return <ConsentDeclined />;
+	// Handle views that render without header
+	switch (currentView) {
+		case 'consent-declined':
+			return <ConsentDeclined />;
+		case 'privacy-policy':
+			return <PrivacyPolicy onBack={() => setCurrentView('home')} />;
+		case 'terms':
+			return <TermsOfService onBack={() => setCurrentView('home')} />;
+		default:
+			break;
 	}
 
 	return (
@@ -59,6 +66,14 @@ function App() {
 				<ConsentModal
 					onAccept={handleConsentAccept}
 					onDecline={handleConsentDecline}
+					onNavigateToPrivacy={() => {
+						setShowConsentModal(false);
+						setCurrentView('privacy-policy');
+					}}
+					onNavigateToTerms={() => {
+						setShowConsentModal(false);
+						setCurrentView('terms');
+					}}
 				/>
 			)}
 			<Header
@@ -74,7 +89,20 @@ function App() {
 			{currentView === 'chat' && (
 				<ChatInterface onBack={() => setCurrentView('home')} />
 			)}
-			{currentView === 'ocr' && <OCRTest />}
+			{currentView === 'ocr' && (
+				<Suspense
+					fallback={
+						<div className='flex-1 flex items-center justify-center min-h-[calc(100vh-80px)]'>
+							<div className='text-center'>
+								<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+								<p className='text-text-secondary'>Loading OCR tools...</p>
+							</div>
+						</div>
+					}
+				>
+					<OCRTest />
+				</Suspense>
+			)}
 		</div>
 	);
 }

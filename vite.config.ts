@@ -34,6 +34,22 @@ export default defineConfig({
 			},
 		},
 	},
+	build: {
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					// Separate heavy ML/AI libraries
+					'tesseract': ['tesseract.js'],
+					'transformers': ['@xenova/transformers'],
+					// Separate React vendor code
+					'react-vendor': ['react', 'react-dom'],
+					// Separate UI libraries
+					'ui-vendor': ['lucide-react'],
+				},
+			},
+		},
+		chunkSizeWarningLimit: 1000, // Increase limit to 1MB (from 500KB default)
+	},
 	plugins: [
 		react(),
 		VitePWA({

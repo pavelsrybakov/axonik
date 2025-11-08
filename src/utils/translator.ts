@@ -18,9 +18,7 @@ const MYMEMORY_API = isDevelopment
 	: `${MYMEMORY_API_BASE}/get`; // Direct API
 
 // Fallback to local model if API fails
-import { pipeline } from '@xenova/transformers';
-
-// Cache the pipeline instance
+// Dynamic import to avoid bundling when USE_API is true
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let translationPipeline: any = null;
 let isModelLoading = false;
@@ -179,6 +177,9 @@ async function initializeTranslator(): Promise<any> {
 	}
 
 	isModelLoading = true;
+
+	// Dynamic import to avoid bundling when USE_API is true
+	const { pipeline } = await import('@xenova/transformers');
 
 	const modelName = 'Helsinki-NLP/opus-mt-ru-en';
 	console.log('Loading translation model locally:', modelName);
