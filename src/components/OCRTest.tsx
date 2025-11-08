@@ -3,11 +3,13 @@ import {
 	Globe,
 	Image as ImageIcon,
 	Loader,
+	Sparkles,
 	Upload,
 	X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { createWorker } from 'tesseract.js';
+import { correctSpelling } from '../utils/spellChecker';
 
 type Language = {
 	code: string;
@@ -16,9 +18,14 @@ type Language = {
 };
 
 const LANGUAGES: Language[] = [
+	// Latin script languages
 	{ code: 'eng', name: 'English', flag: '🇺🇸' },
-	{ code: 'kor', name: 'Korean', flag: '🇰🇷' },
+	{ code: 'fra', name: 'French', flag: '🇫🇷' },
+	{ code: 'deu', name: 'German', flag: '🇩🇪' },
+	{ code: 'spa', name: 'Spanish', flag: '🇪🇸' },
+	// Non-Latin script languages
 	{ code: 'rus', name: 'Russian', flag: '🇷🇺' },
+	// { code: 'kor', name: 'Korean', flag: '🇰🇷' }, // Hidden but available in spell checker
 ];
 
 const OCRTest = () => {
@@ -28,6 +35,7 @@ const OCRTest = () => {
 	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
+	const [useSpellCheck, setUseSpellCheck] = useState<boolean>(true);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +98,14 @@ const OCRTest = () => {
 				data: { text },
 			} = await worker.recognize(image);
 
-			setExtractedText(text);
+			// Apply spell checking if enabled (works for all selected languages)
+			let finalText = text;
+			if (useSpellCheck) {
+				setProgress(95); // Update progress
+				finalText = await correctSpelling(text, langString);
+			}
+
+			setExtractedText(finalText);
 			await worker.terminate();
 		} catch (err) {
 			setError(
@@ -131,34 +146,113 @@ const OCRTest = () => {
 								Select Languages
 							</h3>
 						</div>
-						<div className='flex flex-wrap items-center justify-center gap-3'>
-							{LANGUAGES.map((lang) => {
-								const isSelected = selectedLanguages.includes(lang.code);
-								return (
-									<button
-										key={lang.code}
-										onClick={() => handleLanguageToggle(lang.code)}
-										disabled={isProcessing}
-										className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border-2 ${
-											isSelected
-												? 'bg-primary text-white border-primary shadow-md scale-105'
-												: 'bg-background text-text-secondary border-border hover:border-primary/50 hover:bg-primary/5'
-										} disabled:opacity-50 disabled:cursor-not-allowed`}
-									>
-										<span className='text-xl'>{lang.flag}</span>
-										<span>{lang.name}</span>
-										{isSelected && <span className='ml-1 text-xs'>✓</span>}
-									</button>
-								);
-							})}
+						<div className='space-y-4'>
+							{/* Latin Script Languages */}
+							<div>
+								<p className='text-xs font-medium text-text-secondary mb-2 px-1'>
+									Latin Script
+								</p>
+								<div className='flex flex-wrap items-center justify-center gap-2'>
+									{LANGUAGES.filter((lang) =>
+										['eng', 'fra', 'deu', 'spa'].includes(lang.code)
+									).map((lang) => {
+										const isSelected = selectedLanguages.includes(lang.code);
+										return (
+											<button
+												key={lang.code}
+												onClick={() => handleLanguageToggle(lang.code)}
+												disabled={isProcessing}
+												className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all border-2 text-sm ${
+													isSelected
+														? 'bg-primary text-white border-primary shadow-md scale-105'
+														: 'bg-background text-text-secondary border-border hover:border-primary/50 hover:bg-primary/5'
+												} disabled:opacity-50 disabled:cursor-not-allowed`}
+											>
+												<span className='text-lg'>{lang.flag}</span>
+												<span>{lang.name}</span>
+												{isSelected && <span className='ml-1 text-xs'>✓</span>}
+											</button>
+										);
+									})}
+								</div>
+							</div>
+							{/* Non-Latin Script Languages */}
+							<div>
+								<p className='text-xs font-medium text-text-secondary mb-2 px-1'>
+									Other Scripts
+								</p>
+								<div className='flex flex-wrap items-center justify-center gap-2'>
+									{LANGUAGES.filter((lang) => ['rus'].includes(lang.code)).map(
+										(lang) => {
+											const isSelected = selectedLanguages.includes(lang.code);
+											return (
+												<button
+													key={lang.code}
+													onClick={() => handleLanguageToggle(lang.code)}
+													disabled={isProcessing}
+													className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all border-2 text-sm ${
+														isSelected
+															? 'bg-primary text-white border-primary shadow-md scale-105'
+															: 'bg-background text-text-secondary border-border hover:border-primary/50 hover:bg-primary/5'
+													} disabled:opacity-50 disabled:cursor-not-allowed`}
+												>
+													<span className='text-lg'>{lang.flag}</span>
+													<span>{lang.name}</span>
+													{isSelected && (
+														<span className='ml-1 text-xs'>✓</span>
+													)}
+												</button>
+											);
+										}
+									)}
+								</div>
+							</div>
 						</div>
-						<p className='text-sm text-text-secondary mt-4'>
-							{selectedLanguages.length > 1
-								? `Multi-language mode: ${selectedLanguages
-										.map((code) => LANGUAGES.find((l) => l.code === code)?.name)
-										.join(' + ')}`
-								: 'Select multiple languages for better recognition of mixed content'}
+						<p className='text-sm text-text-secondary mt-4 text-center'>
+							{selectedLanguages.length > 1 ? (
+								<span>
+									Multi-language mode:{' '}
+									<span className='font-medium text-text-primary'>
+										{selectedLanguages
+											.map(
+												(code) => LANGUAGES.find((l) => l.code === code)?.name
+											)
+											.join(' + ')}
+									</span>
+								</span>
+							) : (
+								'Select multiple languages for better recognition of mixed content'
+							)}
 						</p>
+						<div className='mt-4 pt-4 border-t border-border flex items-center justify-center gap-3'>
+							<label className='flex items-center gap-2 cursor-pointer'>
+								<input
+									type='checkbox'
+									checked={useSpellCheck}
+									onChange={(e) => setUseSpellCheck(e.target.checked)}
+									disabled={isProcessing}
+									className='w-4 h-4 text-primary border-border rounded focus:ring-primary'
+								/>
+								<div className='flex items-center gap-2'>
+									<Sparkles size={16} className='text-primary' />
+									<span className='text-sm font-medium text-text-primary'>
+										Enable spell checking
+										{selectedLanguages.length > 0 && (
+											<span className='ml-2 text-text-secondary'>
+												(
+												{selectedLanguages
+													.map((code) => {
+														const lang = LANGUAGES.find((l) => l.code === code);
+														return lang ? lang.name : code;
+													})
+													.join(', ')}
+												)
+											</span>
+										)}
+									</span>
+								</div>
+							</label>
+						</div>
 					</div>
 				</div>
 
