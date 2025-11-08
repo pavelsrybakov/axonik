@@ -27,6 +27,8 @@ const LANGUAGES: Language[] = [
 	{ code: 'fra', name: 'French', flag: '🇫🇷' },
 	{ code: 'deu', name: 'German', flag: '🇩🇪' },
 	{ code: 'spa', name: 'Spanish', flag: '🇪🇸' },
+	{ code: 'ita', name: 'Italian', flag: '🇮🇹' },
+	{ code: 'nld', name: 'Dutch', flag: '🇳🇱' },
 	// Non-Latin script languages
 	{ code: 'rus', name: 'Russian', flag: '🇷🇺' },
 	// { code: 'kor', name: 'Korean', flag: '🇰🇷' }, // Hidden but available in spell checker
@@ -275,7 +277,9 @@ const OCRTest = () => {
 								</p>
 								<div className='flex flex-wrap items-center justify-center gap-2'>
 									{LANGUAGES.filter((lang) =>
-										['eng', 'fra', 'deu', 'spa'].includes(lang.code)
+										['eng', 'fra', 'deu', 'spa', 'ita', 'nld'].includes(
+											lang.code
+										)
 									).map((lang) => {
 										const isSelected = selectedLanguages.includes(lang.code);
 										return (

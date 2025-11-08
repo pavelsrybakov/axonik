@@ -47,6 +47,8 @@ const OCR_TO_DICT: Record<string, Lang> = {
 	fra: 'fr',
 	deu: 'de',
 	spa: 'es',
+	ita: 'it',
+	nld: 'nl',
 };
 
 // Old dictionaries removed - now using dictionaries from ./dictionaries/index.ts
@@ -66,7 +68,7 @@ function detectLangByScript(token: string, ocrLanguages?: string[]): Lang {
 	if (ocrLanguages && ocrLanguages.length > 0) {
 		for (const ocrLang of ocrLanguages) {
 			const dictLang = OCR_TO_DICT[ocrLang];
-			if (dictLang && ['en', 'fr', 'de', 'es'].includes(dictLang)) {
+			if (dictLang && ['en', 'fr', 'de', 'es', 'it', 'nl'].includes(dictLang)) {
 				return dictLang;
 			}
 		}
