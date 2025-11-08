@@ -2,6 +2,7 @@ import {
 	FileText,
 	Globe,
 	Image as ImageIcon,
+	Languages,
 	Loader,
 	Sparkles,
 	Upload,
@@ -10,6 +11,7 @@ import {
 import { useRef, useState } from 'react';
 import { createWorker } from 'tesseract.js';
 import { correctSpelling } from '../utils/spellChecker';
+import { isRussianText, translateRussianToEnglish } from '../utils/translator';
 
 type Language = {
 	code: string;
@@ -31,11 +33,15 @@ const LANGUAGES: Language[] = [
 const OCRTest = () => {
 	const [image, setImage] = useState<string | null>(null);
 	const [extractedText, setExtractedText] = useState<string>('');
+	const [translatedText, setTranslatedText] = useState<string>('');
 	const [isProcessing, setIsProcessing] = useState(false);
+	const [isTranslating, setIsTranslating] = useState(false);
+	const [translationProgress, setTranslationProgress] = useState(0);
 	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
 	const [useSpellCheck, setUseSpellCheck] = useState<boolean>(true);
+	const [autoTranslate, setAutoTranslate] = useState<boolean>(true); // Default to true for better UX
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +112,19 @@ const OCRTest = () => {
 			}
 
 			setExtractedText(finalText);
+			setTranslatedText(''); // Reset translation when new text is extracted
+
+			// Auto-translate if Russian text is detected and auto-translate is enabled
+			// This provides seamless translation when extracting Russian text from images
+			if (isRussianText(finalText) && autoTranslate) {
+				// Start translation immediately after text extraction
+				// The UI will show the extracted text first, then the translation will appear
+				handleTranslate(finalText).catch((err) => {
+					console.error('Auto-translation failed:', err);
+					// Don't show error to user for auto-translate failures, they can manually translate
+				});
+			}
+
 			await worker.terminate();
 		} catch (err) {
 			setError(
@@ -119,11 +138,62 @@ const OCRTest = () => {
 		}
 	};
 
+	const handleTranslate = async (textToTranslate?: string) => {
+		const text = textToTranslate || extractedText;
+		if (!text || !isRussianText(text)) {
+			setError('Text does not appear to contain Russian characters');
+			return;
+		}
+
+		setIsTranslating(true);
+		setTranslationProgress(0);
+		setError(null);
+
+		try {
+			const translated = await translateRussianToEnglish(
+				text,
+				setTranslationProgress
+			);
+			// Validate we got some English text (allow mixed results)
+			const hasEnglish = /[a-zA-Z]/.test(translated);
+			const allRussian = isRussianText(translated) && !hasEnglish;
+
+			if (allRussian && translated === text.trim()) {
+				// Only error if it's exactly the same as original
+				throw new Error(
+					'Translation failed - API returned original Russian text. The translation service may be unavailable.'
+				);
+			}
+
+			// If it's all Russian but different, it might be a partial translation - show it anyway
+			if (allRussian) {
+				console.warn(
+					'Translation contains only Russian text - may be incomplete'
+				);
+			}
+
+			setTranslatedText(translated);
+		} catch (err) {
+			console.error('Translation error in component:', err);
+			setTranslatedText(''); // Clear any previous translation
+			setError(
+				err instanceof Error
+					? err.message
+					: 'Failed to translate text. Please check the browser console for details and try again.'
+			);
+		} finally {
+			setIsTranslating(false);
+			setTranslationProgress(0);
+		}
+	};
+
 	const handleClear = () => {
 		setImage(null);
 		setExtractedText('');
+		setTranslatedText('');
 		setError(null);
 		setProgress(0);
+		setTranslationProgress(0);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = '';
 		}
@@ -224,8 +294,8 @@ const OCRTest = () => {
 								'Select multiple languages for better recognition of mixed content'
 							)}
 						</p>
-						<div className='mt-4 pt-4 border-t border-border flex items-center justify-center gap-3'>
-							<label className='flex items-center gap-2 cursor-pointer'>
+						<div className='mt-4 pt-4 border-t border-border flex flex-col gap-3'>
+							<label className='flex items-center gap-2 cursor-pointer justify-center'>
 								<input
 									type='checkbox'
 									checked={useSpellCheck}
@@ -249,6 +319,21 @@ const OCRTest = () => {
 												)
 											</span>
 										)}
+									</span>
+								</div>
+							</label>
+							<label className='flex items-center gap-2 cursor-pointer justify-center'>
+								<input
+									type='checkbox'
+									checked={autoTranslate}
+									onChange={(e) => setAutoTranslate(e.target.checked)}
+									disabled={isProcessing}
+									className='w-4 h-4 text-primary border-border rounded focus:ring-primary'
+								/>
+								<div className='flex items-center gap-2'>
+									<Languages size={16} className='text-primary' />
+									<span className='text-sm font-medium text-text-primary'>
+										Auto-translate Russian to English
 									</span>
 								</div>
 							</label>
@@ -350,26 +435,72 @@ const OCRTest = () => {
 							</div>
 
 							{extractedText && (
-								<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md lg:flex-1'>
-									<div className='flex items-center gap-3 mb-6'>
+								<div className='bg-surface rounded-2xl p-4 md:p-8 border border-border shadow-md lg:flex-1 flex flex-col gap-4'>
+									<div className='flex items-center gap-3'>
 										<FileText size={20} className='text-primary' />
 										<h3 className='text-2xl font-bold text-text-primary'>
 											Extracted Text
 										</h3>
 									</div>
-									<div className='bg-background border border-border rounded-xl p-6 mb-4 max-h-[400px] overflow-y-auto'>
+									<div className='bg-background border border-border rounded-xl p-6 mb-2 max-h-[300px] overflow-y-auto flex-1'>
 										<pre className='m-0 font-mono text-[0.9375rem] leading-relaxed text-text-primary whitespace-pre-wrap break-words'>
 											{extractedText}
 										</pre>
 									</div>
-									<button
-										className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)]'
-										onClick={() => {
-											navigator.clipboard.writeText(extractedText);
-										}}
-									>
-										Copy to Clipboard
-									</button>
+									<div className='flex gap-3'>
+										<button
+											className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+											onClick={() => {
+												navigator.clipboard.writeText(extractedText);
+											}}
+										>
+											Copy Original
+										</button>
+										{isRussianText(extractedText) && (
+											<button
+												className='flex items-center justify-center gap-2 bg-primary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+												onClick={() => handleTranslate()}
+												disabled={isTranslating || isProcessing}
+											>
+												{isTranslating ? (
+													<>
+														<Loader className='animate-spin' size={16} />
+														Translating... {translationProgress}%
+													</>
+												) : (
+													<>
+														<Languages size={16} />
+														{translatedText
+															? 'Retranslate'
+															: 'Translate to English'}
+													</>
+												)}
+											</button>
+										)}
+									</div>
+									{translatedText && (
+										<div className='mt-4 pt-4 border-t border-border'>
+											<div className='flex items-center gap-3 mb-4'>
+												<Languages size={20} className='text-primary' />
+												<h3 className='text-xl font-bold text-text-primary'>
+													Translated to English
+												</h3>
+											</div>
+											<div className='bg-background border border-border rounded-xl p-6 mb-2 max-h-[300px] overflow-y-auto'>
+												<pre className='m-0 font-mono text-[0.9375rem] leading-relaxed text-text-primary whitespace-pre-wrap break-words'>
+													{translatedText}
+												</pre>
+											</div>
+											<button
+												className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)]'
+												onClick={() => {
+													navigator.clipboard.writeText(translatedText);
+												}}
+											>
+												Copy Translation
+											</button>
+										</div>
+									)}
 								</div>
 							)}
 						</div>

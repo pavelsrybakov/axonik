@@ -4,6 +4,21 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	server: {
+		proxy: {
+			// Proxy for MyMemory API to avoid CORS issues
+			'/api/translate': {
+				target: 'https://api.mymemory.translated.net',
+				changeOrigin: true,
+				rewrite: (path) => {
+					// Keep query params, just change path to /get
+					const queryIndex = path.indexOf('?');
+					const query = queryIndex >= 0 ? path.substring(queryIndex) : '';
+					return `/get${query}`;
+				},
+			},
+		},
+	},
 	plugins: [
 		react(),
 		VitePWA({
