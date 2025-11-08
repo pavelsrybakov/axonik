@@ -67,7 +67,7 @@ function App() {
 			/>
 			{currentView === 'home' && (
 				<>
-					<Hero onGetStarted={() => setCurrentView('chat')} />
+					<Hero onGetStarted={() => setCurrentView('ocr')} />
 					<Features />
 				</>
 			)}
