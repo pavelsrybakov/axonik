@@ -1,10 +1,13 @@
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface HeroProps {
 	onGetStarted: () => void;
 }
 
 const Hero = ({ onGetStarted }: HeroProps) => {
+	const [showHowToUse, setShowHowToUse] = useState(false);
+
 	return (
 		<section className='flex-1 py-16 px-4 md:px-8 bg-gradient-to-b from-surface to-background'>
 			<div className='max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
@@ -32,8 +35,11 @@ const Hero = ({ onGetStarted }: HeroProps) => {
 							Get Started
 							<ArrowRight size={20} />
 						</button>
-						<button className='bg-transparent text-primary border-2 border-primary px-8 py-4 rounded-xl text-base font-semibold cursor-pointer transition-all hover:bg-primary/5 hover:-translate-y-0.5'>
-							Learn More
+						<button 
+							className='bg-transparent text-primary border-2 border-primary px-8 py-4 rounded-xl text-base font-semibold cursor-pointer transition-all hover:bg-primary/5 hover:-translate-y-0.5'
+							onClick={() => setShowHowToUse(true)}
+						>
+							How to Use?
 						</button>
 					</div>
 					<div className='flex gap-8 md:gap-12 mt-8 pt-8 border-t border-border'>
@@ -77,6 +83,86 @@ const Hero = ({ onGetStarted }: HeroProps) => {
 					</div>
 				</div>
 			</div>
+			{showHowToUse && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+					<div className="bg-white rounded-lg shadow-xl max-w-lg w-full transform transition-all duration-200">
+						<div className="p-6">
+							<div className="flex items-center justify-between mb-6">
+								<h2 className="text-2xl font-bold text-gray-900">
+									How to Use
+								</h2>
+								<button
+									onClick={() => setShowHowToUse(false)}
+									className="text-gray-400 hover:text-gray-600 transition-colors"
+									aria-label="Close modal"
+								>
+									<X size={24} />
+								</button>
+							</div>
+							<div className="space-y-4 mb-6">
+								<div className="flex gap-4">
+									<div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										1
+									</div>
+									<div className="flex-1">
+										<p className="text-gray-700 leading-relaxed">
+											Select <span className="font-semibold text-primary">"OCR TEST"</span>
+										</p>
+									</div>
+								</div>
+								<div className="flex gap-4">
+									<div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										2
+									</div>
+									<div className="flex-1">
+										<p className="text-gray-700 leading-relaxed">
+											Select <span className="font-semibold">Language(s)</span>
+										</p>
+									</div>
+								</div>
+								<div className="flex gap-4">
+									<div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										3
+									</div>
+									<div className="flex-1">
+										<p className="text-gray-700 leading-relaxed">
+											Select <span className="font-semibold">image</span>
+										</p>
+									</div>
+								</div>
+								<div className="flex gap-4">
+									<div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										4
+									</div>
+									<div className="flex-1">
+										<p className="text-gray-700 leading-relaxed">
+											Click <span className="font-semibold text-primary">"Extract Text"</span> and wait
+										</p>
+									</div>
+								</div>
+								<div className="flex gap-4">
+									<div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										5
+									</div>
+									<div className="flex-1">
+										<p className="text-gray-700 leading-relaxed">
+											You can <span className="font-semibold">mask personal info</span> or <span className="font-semibold">copy the output text</span>
+										</p>
+									</div>
+								</div>
+							</div>
+							<div className="pt-4 border-t">
+								<button
+									onClick={() => setShowHowToUse(false)}
+									className="w-full px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium text-sm"
+								>
+									Got it!
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</section>
 	);
 };

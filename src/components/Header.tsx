@@ -42,9 +42,6 @@ const Header = ({ onNavigate, currentView }: HeaderProps) => {
 					>
 						OCR Test
 					</button>
-					<button className='bg-primary text-white border-none px-6 py-2 rounded-lg font-semibold cursor-pointer transition-all hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0'>
-						Sign In
-					</button>
 				</nav>
 			</div>
 		</header>
