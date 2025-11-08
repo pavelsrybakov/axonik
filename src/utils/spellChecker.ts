@@ -42,7 +42,7 @@ const LETTER_RE = /\p{L}/u; // Any Unicode letter
 // Map OCR language codes to dictionary language codes
 const OCR_TO_DICT: Record<string, Lang> = {
 	eng: 'en',
-	rus: 'ru',
+	// rus: 'ru',
 	kor: 'ko',
 	fra: 'fr',
 	deu: 'de',
