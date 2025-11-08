@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Icon Generator for Axonic.ai</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			padding: 20px;
+			background: #f8fafc;
+		}
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+			background: white;
+			padding: 30px;
+			border-radius: 12px;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+		}
+		canvas {
+			border: 2px solid #e2e8f0;
+			border-radius: 8px;
+			margin: 20px 0;
+		}
+		button {
+			background: #2563eb;
+			color: white;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 8px;
+			cursor: pointer;
+			font-size: 16px;
+			margin: 10px 5px;
+		}
+		button:hover {
+			background: #1e40af;
+		}
+		.info {
+			background: #eff6ff;
+			padding: 15px;
+			border-radius: 8px;
+			margin: 20px 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>🎨 Axonic.ai Icon Generator</h1>
+		<div class="info">
+			<p><strong>Instructions:</strong></p>
+			<ol>
+				<li>Click "Generate 192x192" to create the small icon</li>
+				<li>Click "Generate 512x512" to create the large icon</li>
+				<li>Right-click each canvas and "Save image as..."</li>
+				<li>Save as <code>icon-192.png</code> and <code>icon-512.png</code> in the <code>public</code> folder</li>
+			</ol>
+		</div>
+		
+		<h2>192x192 Icon</h2>
+		<canvas id="icon192" width="192" height="192"></canvas>
+		<button onclick="generateIcon(192)">Generate 192x192</button>
+		<button onclick="downloadIcon('icon192', 'icon-192.png')">Download</button>
+		
+		<h2>512x512 Icon</h2>
+		<canvas id="icon512" width="512" height="512"></canvas>
+		<button onclick="generateIcon(512)">Generate 512x512</button>
+		<button onclick="downloadIcon('icon512', 'icon-512.png')">Download</button>
+	</div>
+
+	<script>
+		function generateIcon(size) {
+			const canvas = document.getElementById(`icon${size}`);
+			const ctx = canvas.getContext('2d');
+			
+			// Background gradient
+			const gradient = ctx.createLinearGradient(0, 0, size, size);
+			gradient.addColorStop(0, '#2563eb');
+			gradient.addColorStop(1, '#8b5cf6');
+			ctx.fillStyle = gradient;
+			ctx.fillRect(0, 0, size, size);
+			
+			// Draw brain icon (simplified)
+			ctx.fillStyle = 'white';
+			ctx.font = `bold ${size * 0.5}px Arial`;
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText('🧠', size / 2, size / 2 - size * 0.1);
+			
+			// App name
+			ctx.font = `bold ${size * 0.12}px Arial`;
+			ctx.fillText('Axonic.ai', size / 2, size / 2 + size * 0.15);
+		}
+		
+		function downloadIcon(canvasId, filename) {
+			const canvas = document.getElementById(canvasId);
+			const link = document.createElement('a');
+			link.download = filename;
+			link.href = canvas.toDataURL('image/png');
+			link.click();
+		}
+		
+		// Generate icons on load
+		window.onload = () => {
+			generateIcon(192);
+			generateIcon(512);
+		};
+	</script>
+</body>
+</html>
+
