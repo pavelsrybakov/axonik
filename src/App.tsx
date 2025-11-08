@@ -1,24 +1,31 @@
 import { useState } from 'react';
-import './App.css';
 import ChatInterface from './components/ChatInterface';
 import Features from './components/Features';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import OCRTest from './components/OCRTest';
+
+type View = 'home' | 'chat' | 'ocr';
 
 function App() {
-	const [showChat, setShowChat] = useState(false);
+	const [currentView, setCurrentView] = useState<View>('home');
 
 	return (
-		<div className='app'>
-			<Header />
-			{!showChat ? (
+		<div className='min-h-screen flex flex-col'>
+			<Header
+				onNavigate={(view) => setCurrentView(view)}
+				currentView={currentView}
+			/>
+			{currentView === 'home' && (
 				<>
-					<Hero onGetStarted={() => setShowChat(true)} />
+					<Hero onGetStarted={() => setCurrentView('chat')} />
 					<Features />
 				</>
-			) : (
-				<ChatInterface onBack={() => setShowChat(false)} />
 			)}
+			{currentView === 'chat' && (
+				<ChatInterface onBack={() => setCurrentView('home')} />
+			)}
+			{currentView === 'ocr' && <OCRTest />}
 		</div>
 	);
 }

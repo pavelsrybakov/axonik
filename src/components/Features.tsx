@@ -1,5 +1,4 @@
 import { Brain, CheckCircle, Clock, Lock, Shield, Zap } from 'lucide-react';
-import './Features.css';
 
 const Features = () => {
 	const features = [
@@ -42,25 +41,34 @@ const Features = () => {
 	];
 
 	return (
-		<section className='features' id='features'>
-			<div className='features-container'>
-				<div className='features-header'>
-					<h2 className='features-title'>Why Choose Axonic.ai?</h2>
-					<p className='features-subtitle'>
+		<section className='py-24 px-4 md:px-8 bg-surface' id='features'>
+			<div className='max-w-[1200px] mx-auto'>
+				<div className='text-center mb-16'>
+					<h2 className='text-4xl md:text-5xl font-extrabold text-text-primary mb-4'>
+						Why Choose Axonic.ai?
+					</h2>
+					<p className='text-lg md:text-xl text-text-secondary max-w-[600px] mx-auto'>
 						Built for healthcare professionals and patients who demand accuracy,
 						security, and reliability.
 					</p>
 				</div>
-				<div className='features-grid'>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
 					{features.map((feature, index) => {
 						const Icon = feature.icon;
 						return (
-							<div key={index} className='feature-card'>
-								<div className='feature-icon'>
+							<div
+								key={index}
+								className='bg-background p-8 rounded-2xl border border-border transition-all flex flex-col gap-4 hover:-translate-y-1 hover:shadow-xl hover:border-primary-light'
+							>
+								<div className='w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-white mb-2'>
 									<Icon size={32} />
 								</div>
-								<h3 className='feature-title'>{feature.title}</h3>
-								<p className='feature-description'>{feature.description}</p>
+								<h3 className='text-xl font-bold text-text-primary'>
+									{feature.title}
+								</h3>
+								<p className='text-text-secondary leading-relaxed'>
+									{feature.description}
+								</p>
 							</div>
 						);
 					})}

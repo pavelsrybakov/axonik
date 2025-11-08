@@ -1,22 +1,50 @@
 import { Brain } from 'lucide-react';
-import './Header.css';
 
-const Header = () => {
+type View = 'home' | 'chat' | 'ocr';
+
+interface HeaderProps {
+	onNavigate?: (view: View) => void;
+	currentView?: View;
+}
+
+const Header = ({ onNavigate, currentView }: HeaderProps) => {
+	const handleNavClick = (e: React.MouseEvent, view: View) => {
+		e.preventDefault();
+		onNavigate?.(view);
+	};
+
 	return (
-		<header className='header'>
-			<div className='header-container'>
-				<div className='logo'>
-					<Brain className='logo-icon' size={28} />
-					<span className='logo-text'>Axonic.ai</span>
+		<header className='bg-surface border-b border-border shadow-sm sticky top-0 z-[100]'>
+			<div className='max-w-[1200px] mx-auto px-4 md:px-8 py-4 flex justify-between items-center'>
+				<div
+					className='flex items-center gap-3 text-2xl font-bold text-primary cursor-pointer'
+					onClick={() => onNavigate?.('home')}
+				>
+					<Brain className='text-primary' size={28} />
+					<span className='bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent'>
+						Axonic.ai
+					</span>
 				</div>
-				<nav className='nav'>
-					<a href='#features' className='nav-link'>
-						Features
-					</a>
-					<a href='#about' className='nav-link'>
-						About
-					</a>
-					<button className='nav-button'>Sign In</button>
+				<nav className='flex items-center gap-4 md:gap-8'>
+					{currentView !== 'home' && (
+						<button
+							className='text-text-secondary font-medium transition-colors hover:text-primary bg-transparent border-none cursor-pointer text-inherit font-inherit p-0'
+							onClick={(e) => handleNavClick(e, 'home')}
+						>
+							Home
+						</button>
+					)}
+					<button
+						className={`text-text-secondary font-medium transition-colors hover:text-primary bg-transparent border-none cursor-pointer text-inherit font-inherit p-0 ${
+							currentView === 'ocr' ? 'text-primary font-semibold' : ''
+						}`}
+						onClick={(e) => handleNavClick(e, 'ocr')}
+					>
+						OCR Test
+					</button>
+					<button className='bg-primary text-white border-none px-6 py-2 rounded-lg font-semibold cursor-pointer transition-all hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0'>
+						Sign In
+					</button>
 				</nav>
 			</div>
 		</header>

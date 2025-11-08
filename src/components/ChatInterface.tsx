@@ -1,6 +1,5 @@
 import { ArrowLeft, Bot, Send, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import './ChatInterface.css';
 
 interface Message {
 	id: string;
@@ -69,35 +68,62 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 	};
 
 	return (
-		<div className='chat-interface'>
-			<div className='chat-header'>
-				<button className='back-button' onClick={onBack}>
+		<div className='flex-1 flex flex-col max-w-[1200px] mx-auto w-full h-[calc(100vh-80px)] bg-surface'>
+			<div className='flex items-center gap-4 px-4 md:px-8 py-6 border-b border-border bg-surface'>
+				<button
+					className='bg-transparent border border-border rounded-lg p-2 cursor-pointer text-text-secondary transition-all hover:bg-background hover:text-primary hover:border-primary flex items-center justify-center'
+					onClick={onBack}
+				>
 					<ArrowLeft size={20} />
 				</button>
-				<div className='chat-header-content'>
-					<h2 className='chat-title'>Axonic.ai Assistant</h2>
-					<p className='chat-subtitle'>Medical AI at your service</p>
+				<div className='flex-1'>
+					<h2 className='text-2xl md:text-3xl font-bold text-text-primary mb-1'>
+						Axonic.ai Assistant
+					</h2>
+					<p className='text-sm text-text-secondary'>
+						Medical AI at your service
+					</p>
 				</div>
 			</div>
 
-			<div className='chat-messages'>
+			<div className='flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-6 bg-background'>
 				{messages.map((message) => (
 					<div
 						key={message.id}
-						className={`message ${
-							message.sender === 'user' ? 'message-user' : 'message-ai'
+						className={`flex gap-4 max-w-[80%] md:max-w-[80%] animate-slideIn ${
+							message.sender === 'user'
+								? 'self-end flex-row-reverse'
+								: 'self-start'
 						}`}
 					>
-						<div className='message-avatar'>
+						<div
+							className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+								message.sender === 'user'
+									? 'bg-primary text-white'
+									: 'bg-gradient-to-br from-primary to-accent text-white'
+							}`}
+						>
 							{message.sender === 'user' ? (
 								<User size={20} />
 							) : (
 								<Bot size={20} />
 							)}
 						</div>
-						<div className='message-content'>
-							<div className='message-text'>{message.text}</div>
-							<div className='message-time'>
+						<div
+							className={`flex flex-col gap-2 ${
+								message.sender === 'user' ? 'items-end' : 'items-start'
+							}`}
+						>
+							<div
+								className={`px-5 py-4 rounded-2xl leading-relaxed break-words ${
+									message.sender === 'user'
+										? 'bg-primary text-white rounded-br-sm'
+										: 'bg-surface text-text-primary border border-border rounded-bl-sm'
+								}`}
+							>
+								{message.text}
+							</div>
+							<div className='text-xs text-text-secondary px-2'>
 								{message.timestamp.toLocaleTimeString([], {
 									hour: '2-digit',
 									minute: '2-digit',
@@ -107,15 +133,15 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 					</div>
 				))}
 				{isLoading && (
-					<div className='message message-ai'>
-						<div className='message-avatar'>
+					<div className='flex gap-4 max-w-[80%] self-start animate-slideIn'>
+						<div className='w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center flex-shrink-0'>
 							<Bot size={20} />
 						</div>
-						<div className='message-content'>
-							<div className='typing-indicator'>
-								<span></span>
-								<span></span>
-								<span></span>
+						<div className='flex flex-col items-start'>
+							<div className='flex gap-2 px-5 py-4 bg-surface border border-border rounded-2xl rounded-bl-sm'>
+								<span className='w-2 h-2 bg-text-secondary rounded-full animate-typing'></span>
+								<span className='w-2 h-2 bg-text-secondary rounded-full animate-typing [animation-delay:0.2s]'></span>
+								<span className='w-2 h-2 bg-text-secondary rounded-full animate-typing [animation-delay:0.4s]'></span>
 							</div>
 						</div>
 					</div>
@@ -123,10 +149,10 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 				<div ref={messagesEndRef} />
 			</div>
 
-			<div className='chat-input-container'>
-				<div className='chat-input-wrapper'>
+			<div className='px-4 md:px-8 py-6 border-t border-border bg-surface'>
+				<div className='flex gap-4 items-end bg-background border border-border rounded-2xl p-4 transition-all focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]'>
 					<textarea
-						className='chat-input'
+						className='flex-1 border-none bg-transparent resize-none font-inherit text-base text-text-primary outline-none max-h-[120px] leading-normal placeholder:text-text-secondary'
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
 						onKeyPress={handleKeyPress}
@@ -134,14 +160,14 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 						rows={1}
 					/>
 					<button
-						className='send-button'
+						className='bg-primary text-white border-none rounded-xl p-3 cursor-pointer flex items-center justify-center transition-all flex-shrink-0 hover:bg-primary-dark hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0'
 						onClick={handleSend}
 						disabled={!input.trim() || isLoading}
 					>
 						<Send size={20} />
 					</button>
 				</div>
-				<p className='chat-disclaimer'>
+				<p className='mt-3 text-xs text-text-secondary text-center'>
 					This is a demonstration. Always consult with healthcare professionals
 					for medical advice.
 				</p>
