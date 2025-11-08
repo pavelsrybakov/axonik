@@ -1,6 +1,25 @@
-import { FileText, Image as ImageIcon, Loader, Upload, X } from 'lucide-react';
+import {
+	FileText,
+	Globe,
+	Image as ImageIcon,
+	Loader,
+	Upload,
+	X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import { createWorker } from 'tesseract.js';
+
+type Language = {
+	code: string;
+	name: string;
+	flag: string;
+};
+
+const LANGUAGES: Language[] = [
+	{ code: 'eng', name: 'English', flag: '🇺🇸' },
+	{ code: 'kor', name: 'Korean', flag: '🇰🇷' },
+	{ code: 'rus', name: 'Russian', flag: '🇷🇺' },
+];
 
 const OCRTest = () => {
 	const [image, setImage] = useState<string | null>(null);
@@ -8,6 +27,7 @@ const OCRTest = () => {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
+	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,8 +48,23 @@ const OCRTest = () => {
 		reader.readAsDataURL(file);
 	};
 
+	const handleLanguageToggle = (langCode: string) => {
+		setSelectedLanguages((prev) => {
+			if (prev.includes(langCode)) {
+				// Don't allow deselecting if it's the only language
+				if (prev.length === 1) return prev;
+				return prev.filter((code) => code !== langCode);
+			}
+			return [...prev, langCode];
+		});
+	};
+
 	const handleExtractText = async () => {
 		if (!image) return;
+		if (selectedLanguages.length === 0) {
+			setError('Please select at least one language');
+			return;
+		}
 
 		setIsProcessing(true);
 		setProgress(0);
@@ -37,7 +72,13 @@ const OCRTest = () => {
 		setExtractedText('');
 
 		try {
-			const worker = await createWorker('eng', undefined, {
+			// Combine languages: 'eng+kor+rus' or just 'eng' for single language
+			const langString =
+				selectedLanguages.length > 1
+					? selectedLanguages.join('+')
+					: selectedLanguages[0];
+
+			const worker = await createWorker(langString, undefined, {
 				logger: (m) => {
 					if (m.status === 'recognizing text') {
 						setProgress(Math.round(m.progress * 100));
@@ -53,7 +94,9 @@ const OCRTest = () => {
 			await worker.terminate();
 		} catch (err) {
 			setError(
-				err instanceof Error ? err.message : 'Failed to extract text from image'
+				err instanceof Error
+					? err.message
+					: 'Failed to extract text from image. Make sure the language data is loaded.'
 			);
 		} finally {
 			setIsProcessing(false);
@@ -78,9 +121,45 @@ const OCRTest = () => {
 					<h2 className='text-4xl md:text-5xl font-extrabold mb-2 bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent'>
 						OCR Text Extraction
 					</h2>
-					<p className='text-lg md:text-xl text-text-secondary'>
+					<p className='text-lg md:text-xl text-text-secondary mb-6'>
 						Upload an image to extract text using Tesseract.js
 					</p>
+					<div className='bg-surface rounded-xl p-4 md:p-6 border border-border shadow-sm max-w-2xl mx-auto'>
+						<div className='flex items-center justify-center gap-2 mb-4'>
+							<Globe className='text-primary' size={20} />
+							<h3 className='text-lg font-semibold text-text-primary'>
+								Select Languages
+							</h3>
+						</div>
+						<div className='flex flex-wrap items-center justify-center gap-3'>
+							{LANGUAGES.map((lang) => {
+								const isSelected = selectedLanguages.includes(lang.code);
+								return (
+									<button
+										key={lang.code}
+										onClick={() => handleLanguageToggle(lang.code)}
+										disabled={isProcessing}
+										className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border-2 ${
+											isSelected
+												? 'bg-primary text-white border-primary shadow-md scale-105'
+												: 'bg-background text-text-secondary border-border hover:border-primary/50 hover:bg-primary/5'
+										} disabled:opacity-50 disabled:cursor-not-allowed`}
+									>
+										<span className='text-xl'>{lang.flag}</span>
+										<span>{lang.name}</span>
+										{isSelected && <span className='ml-1 text-xs'>✓</span>}
+									</button>
+								);
+							})}
+						</div>
+						<p className='text-sm text-text-secondary mt-4'>
+							{selectedLanguages.length > 1
+								? `Multi-language mode: ${selectedLanguages
+										.map((code) => LANGUAGES.find((l) => l.code === code)?.name)
+										.join(' + ')}`
+								: 'Select multiple languages for better recognition of mixed content'}
+						</p>
+					</div>
 				</div>
 
 				<div className='flex flex-col gap-8'>
