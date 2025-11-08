@@ -43,7 +43,6 @@ const OCRTest = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
 	const [useSpellCheck, setUseSpellCheck] = useState<boolean>(true);
-	const [autoTranslate, setAutoTranslate] = useState<boolean>(true); // Default to true for better UX
 	const [maskPII, setMaskPII] = useState<boolean>(true); // Default to true for privacy
 	const [isMaskingPII, setIsMaskingPII] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,11 +114,12 @@ const OCRTest = () => {
 				finalText = await correctSpelling(text, langString);
 			}
 
-			// Apply PII masking if enabled
-			if (maskPII) {
+			// Don't mask PII on original text if it's Russian - we'll mask the translated version
+			const isRussian = isRussianText(finalText);
+			if (maskPII && !isRussian) {
 				setProgress(95); // Update progress
 				try {
-					console.log('🔄 Attempting to mask PII...');
+					console.log('🔄 Attempting to mask PII on original text...');
 					finalText = await detectAndMaskPersonalInformation(finalText);
 					console.log('✅ PII masking completed');
 				} catch (err) {
@@ -131,9 +131,9 @@ const OCRTest = () => {
 			setExtractedText(finalText);
 			setTranslatedText(''); // Reset translation when new text is extracted
 
-			// Auto-translate if Russian text is detected and auto-translate is enabled
+			// Auto-translate if Russian text is detected
 			// This provides seamless translation when extracting Russian text from images
-			if (isRussianText(finalText) && autoTranslate) {
+			if (isRussian) {
 				// Start translation immediately after text extraction
 				// The UI will show the extracted text first, then the translation will appear
 				handleTranslate(finalText).catch((err) => {
@@ -189,7 +189,20 @@ const OCRTest = () => {
 				);
 			}
 
-			setTranslatedText(translated);
+			// Apply PII masking to translated text if enabled
+			let maskedTranslated = translated;
+			if (maskPII) {
+				try {
+					console.log('🔄 Masking PII in translated text...');
+					maskedTranslated = await detectAndMaskPersonalInformation(translated);
+					console.log('✅ PII masking on translation completed');
+				} catch (err) {
+					console.error('❌ PII masking on translation failed:', err);
+					// Continue with unmasked translation if masking fails
+				}
+			}
+
+			setTranslatedText(maskedTranslated);
 		} catch (err) {
 			console.error('Translation error in component:', err);
 			setTranslatedText(''); // Clear any previous translation
@@ -284,37 +297,6 @@ const OCRTest = () => {
 									})}
 								</div>
 							</div>
-							{/* Non-Latin Script Languages */}
-							<div>
-								<p className='text-xs font-medium text-text-secondary mb-2 px-1'>
-									Other Scripts
-								</p>
-								<div className='flex flex-wrap items-center justify-center gap-2'>
-									{LANGUAGES.filter((lang) => ['rus'].includes(lang.code)).map(
-										(lang) => {
-											const isSelected = selectedLanguages.includes(lang.code);
-											return (
-												<button
-													key={lang.code}
-													onClick={() => handleLanguageToggle(lang.code)}
-													disabled={isProcessing}
-													className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all border-2 text-sm ${
-														isSelected
-															? 'bg-primary text-white border-primary shadow-md scale-105'
-															: 'bg-background text-text-secondary border-border hover:border-primary/50 hover:bg-primary/5'
-													} disabled:opacity-50 disabled:cursor-not-allowed`}
-												>
-													<span className='text-lg'>{lang.flag}</span>
-													<span>{lang.name}</span>
-													{isSelected && (
-														<span className='ml-1 text-xs'>✓</span>
-													)}
-												</button>
-											);
-										}
-									)}
-								</div>
-							</div>
 						</div>
 						<p className='text-sm text-text-secondary mt-4 text-center'>
 							{selectedLanguages.length > 1 ? (
@@ -372,21 +354,6 @@ const OCRTest = () => {
 									<Shield size={16} className='text-primary' />
 									<span className='text-sm font-medium text-text-primary'>
 										Mask personal information
-									</span>
-								</div>
-							</label>
-							<label className='flex items-center gap-2 cursor-pointer justify-center'>
-								<input
-									type='checkbox'
-									checked={autoTranslate}
-									onChange={(e) => setAutoTranslate(e.target.checked)}
-									disabled={isProcessing}
-									className='w-4 h-4 text-primary border-border rounded focus:ring-primary'
-								/>
-								<div className='flex items-center gap-2'>
-									<Languages size={16} className='text-primary' />
-									<span className='text-sm font-medium text-text-primary'>
-										Auto-translate Russian to English
 									</span>
 								</div>
 							</label>
