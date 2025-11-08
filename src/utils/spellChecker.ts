@@ -1,5 +1,31 @@
-import SymSpell from 'symspell';
 import { DICTIONARIES, DictionaryLang } from './dictionaries';
+
+// Import symspell - need to handle CommonJS module in ES module context
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let SymSpellClass: any;
+let symSpellLoaded = false;
+
+async function loadSymSpell() {
+	if (symSpellLoaded) return;
+
+	// Dynamic import for CommonJS module
+	const SymSpellModule = await import('symspell');
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const moduleExport = (SymSpellModule as any).default || SymSpellModule;
+
+	// Ensure we have the actual constructor function
+	if (typeof moduleExport === 'function') {
+		SymSpellClass = moduleExport;
+	} else if (moduleExport && typeof moduleExport.default === 'function') {
+		SymSpellClass = moduleExport.default;
+	} else {
+		throw new Error('SymSpell class not found in module export');
+	}
+
+	symSpellLoaded = true;
+}
+
+type SymSpell = InstanceType<typeof SymSpellClass>;
 
 // Language type - maps OCR language codes to dictionary codes
 type Lang = DictionaryLang;
@@ -100,7 +126,15 @@ async function ensureDictionary(lang: Lang): Promise<SymSpell> {
 		return symSpellInstances[lang];
 	}
 
-	const sym = new SymSpell(2); // maxEditDistance = 2
+	// Load SymSpell if not already loaded
+	await loadSymSpell();
+
+	// Verify SymSpellClass is a constructor
+	if (typeof SymSpellClass !== 'function') {
+		throw new Error('SymSpellClass is not a constructor function');
+	}
+
+	const sym = new SymSpellClass(2); // maxEditDistance = 2
 	symSpellInstances[lang] = sym;
 
 	// Load dictionary from imported dictionaries
