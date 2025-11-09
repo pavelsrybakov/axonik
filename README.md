@@ -3,7 +3,6 @@
 **Your health data. Connected and protected. Worldwide.**
 
 
-<<<<<<< HEAD
 - 🧠 AI-Powered Medical Analysis
 - 🔒 HIPAA Compliant & Secure
 - 🛡️ Personal Information Detection & Masking
@@ -14,7 +13,6 @@
 - 📝 OCR Text Extraction with Multi-language Support
 =======
 **Axonik.ai** is an intelligent platform that solves the problem of fragmentation and insecure data sharing in global healthcare. Our solution is an "intelligent bridge" built on a foundation of "Trust & Safety".
->>>>>>> ed940aa (new README.md)
 
 This repository contains the prototype code developed during the **AngelHack** hackathon, demonstrating our core technology: **on-device processing and depersonalization of medical records.**
 
