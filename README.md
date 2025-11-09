@@ -104,14 +104,10 @@ Our security model is our main competitive advantage:
 - **SymSpell** - Multi-language spell checking
 - **@xenova/transformers** - On-device ML models (optional fallback)
 - **Lucide React** - Icon library
-<<<<<<< HEAD
-- **Tesseract.js** - OCR text extraction
 - **Hugging Face Inference** - Personal information detection
 - **CSS3** - Styling with modern features
-=======
 - **Tailwind CSS** - Styling framework
 - **PWA Plugin** - Progressive Web App support
->>>>>>> ed940aa (new README.md)
 
 ## 8. Getting Started
 
@@ -160,7 +156,6 @@ npm run preview
 
 ```
 src/
-<<<<<<< HEAD
 ├── components/          # React components
 │   ├── Header.tsx      # Navigation header
 │   ├── Hero.tsx        # Landing page hero section
@@ -174,7 +169,6 @@ src/
 ├── App.tsx             # Main app component
 ├── main.tsx            # Application entry point
 └── index.css           # Global styles
-=======
 ├── components/              # React components
 │   ├── Header.tsx          # Navigation header
 │   ├── Hero.tsx            # Landing page hero section
