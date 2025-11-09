@@ -1,4 +1,4 @@
-# Axonic.ai - Medical AI Application
+# Axonik.ai - Medical AI Application
 
 A modern, beautiful React TypeScript application for medical AI assistance.
 

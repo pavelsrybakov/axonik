@@ -45,7 +45,7 @@ const Features = () => {
 			<div className='max-w-[1200px] mx-auto'>
 				<div className='text-center mb-16'>
 					<h2 className='text-4xl md:text-5xl font-extrabold text-text-primary mb-4'>
-						Why Choose Axonic.ai?
+						Why Choose Axonik.ai?
 					</h2>
 					<p className='text-lg md:text-xl text-text-secondary max-w-[600px] mx-auto'>
 						Built for healthcare professionals and patients who demand accuracy,

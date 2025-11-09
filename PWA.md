@@ -1,4 +1,4 @@
-# PWA Testing Guide for Axonic.ai
+# PWA Testing Guide for Axonik.ai
 
 ## Quick Testing Steps
 
@@ -30,14 +30,14 @@ npm run preview
 1. DevTools → **Application** tab
 2. Click **Manifest** in left sidebar
 3. Should show:
-   - App name: "Axonic.ai - Medical AI Assistant"
+   - App name: "Axonik.ai - Medical AI Assistant"
    - Icons: 192x192 and 512x512
    - Theme color: #2563eb
    - Display: standalone
 
 #### D. Test Installation
 1. Look for install icon in address bar (or menu)
-2. Click "Install Axonic.ai"
+2. Click "Install Axonik.ai"
 3. App opens in standalone window (no browser UI)
 4. Check Start Menu / Applications folder for the app
 

@@ -1,8 +1,8 @@
 {
-	"name": "axonic-ai",
+	"name": "axonik-ai",
 	"version": "1.0.0",
 	"type": "module",
-	"description": "Medical AI application - Axonic.ai",
+	"description": "Medical AI application - Axonik.ai",
 	"private": true,
 	"scripts": {
 		"dev": "vite",

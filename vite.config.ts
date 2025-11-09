@@ -40,8 +40,8 @@ export default defineConfig({
 			registerType: 'autoUpdate',
 			includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
 			manifest: {
-				name: 'Axonic.ai - Medical AI Assistant',
-				short_name: 'Axonic.ai',
+				name: 'Axonik.ai - Medical AI Assistant',
+				short_name: 'Axonik.ai',
 				description:
 					'Medical AI application for healthcare insights and decision support',
 				theme_color: '#2563eb',
