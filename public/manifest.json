@@ -1,6 +1,6 @@
 {
-	"name": "Axonic.ai - Medical AI Assistant",
-	"short_name": "Axonic.ai",
+	"name": "Axonik.ai - Medical AI Assistant",
+	"short_name": "Axonik.ai",
 	"description": "Medical AI application for healthcare insights and decision support",
 	"start_url": "/",
 	"display": "standalone",

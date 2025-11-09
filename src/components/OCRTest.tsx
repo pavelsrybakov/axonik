@@ -43,10 +43,9 @@ const OCRTest = () => {
 	const [translationProgress, setTranslationProgress] = useState(0);
 	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
-	const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
+	const [selectedLanguage, setSelectedLanguage] = useState<string>('eng');
 	const [useSpellCheck, setUseSpellCheck] = useState<boolean>(true);
 	const [maskPII, setMaskPII] = useState<boolean>(true); // Default to true for privacy
-	const [isMaskingPII, setIsMaskingPII] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,21 +66,14 @@ const OCRTest = () => {
 		reader.readAsDataURL(file);
 	};
 
-	const handleLanguageToggle = (langCode: string) => {
-		setSelectedLanguages((prev) => {
-			if (prev.includes(langCode)) {
-				// Don't allow deselecting if it's the only language
-				if (prev.length === 1) return prev;
-				return prev.filter((code) => code !== langCode);
-			}
-			return [...prev, langCode];
-		});
+	const handleLanguageSelect = (langCode: string) => {
+		setSelectedLanguage(langCode);
 	};
 
 	const handleExtractText = async () => {
 		if (!image) return;
-		if (selectedLanguages.length === 0) {
-			setError('Please select at least one language');
+		if (!selectedLanguage) {
+			setError('Please select a language');
 			return;
 		}
 
@@ -91,11 +83,8 @@ const OCRTest = () => {
 		setExtractedText('');
 
 		try {
-			// Combine languages: 'eng+kor+rus' or just 'eng' for single language
-			const langString =
-				selectedLanguages.length > 1
-					? selectedLanguages.join('+')
-					: selectedLanguages[0];
+			// Use single selected language
+			const langString = selectedLanguage;
 
 			const worker = await createWorker(langString, undefined, {
 				logger: (m) => {
@@ -219,27 +208,6 @@ const OCRTest = () => {
 		}
 	};
 
-	const handleMaskPII = async () => {
-		if (!extractedText) return;
-
-		setIsMaskingPII(true);
-		setError(null);
-
-		try {
-			console.log('🔄 Manually masking PII...');
-			const maskedText = await detectAndMaskPersonalInformation(extractedText);
-			setExtractedText(maskedText);
-			console.log('✅ Manual PII masking completed');
-		} catch (err) {
-			console.error('❌ Manual PII masking failed:', err);
-			setError(
-				'Failed to mask personal information. Check console for details.'
-			);
-		} finally {
-			setIsMaskingPII(false);
-		}
-	};
-
 	const handleClear = () => {
 		setImage(null);
 		setExtractedText('');
@@ -281,11 +249,11 @@ const OCRTest = () => {
 											lang.code
 										)
 									).map((lang) => {
-										const isSelected = selectedLanguages.includes(lang.code);
+										const isSelected = selectedLanguage === lang.code;
 										return (
 											<button
 												key={lang.code}
-												onClick={() => handleLanguageToggle(lang.code)}
+												onClick={() => handleLanguageSelect(lang.code)}
 												disabled={isProcessing}
 												className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all border-2 text-sm ${
 													isSelected
@@ -303,20 +271,11 @@ const OCRTest = () => {
 							</div>
 						</div>
 						<p className='text-sm text-text-secondary mt-4 text-center'>
-							{selectedLanguages.length > 1 ? (
-								<span>
-									Multi-language mode:{' '}
-									<span className='font-medium text-text-primary'>
-										{selectedLanguages
-											.map(
-												(code) => LANGUAGES.find((l) => l.code === code)?.name
-											)
-											.join(' + ')}
-									</span>
-								</span>
-							) : (
-								'Select multiple languages for better recognition of mixed content'
-							)}
+							Selected:{' '}
+							<span className='font-medium text-text-primary'>
+								{LANGUAGES.find((l) => l.code === selectedLanguage)?.name ||
+									'English'}
+							</span>
 						</p>
 						<div className='mt-4 pt-4 border-t border-border flex flex-col gap-3'>
 							<label className='flex items-center gap-2 cursor-pointer justify-center'>
@@ -331,15 +290,11 @@ const OCRTest = () => {
 									<Sparkles size={16} className='text-primary' />
 									<span className='text-sm font-medium text-text-primary'>
 										Enable spell checking
-										{selectedLanguages.length > 0 && (
+										{selectedLanguage && (
 											<span className='ml-2 text-text-secondary'>
 												(
-												{selectedLanguages
-													.map((code) => {
-														const lang = LANGUAGES.find((l) => l.code === code);
-														return lang ? lang.name : code;
-													})
-													.join(', ')}
+												{LANGUAGES.find((l) => l.code === selectedLanguage)
+													?.name || selectedLanguage}
 												)
 											</span>
 										)}
@@ -472,33 +427,14 @@ const OCRTest = () => {
 										</pre>
 									</div>
 									<div className='flex flex-col gap-3'>
-										<div className='flex gap-3'>
-											<button
-												className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
-												onClick={() => {
-													navigator.clipboard.writeText(extractedText);
-												}}
-											>
-												Copy Text
-											</button>
-											<button
-												className='flex items-center justify-center gap-2 bg-accent text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all flex-1 hover:opacity-90 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
-												onClick={handleMaskPII}
-												disabled={isMaskingPII || isProcessing}
-											>
-												{isMaskingPII ? (
-													<>
-														<Loader className='animate-spin' size={16} />
-														Masking PII...
-													</>
-												) : (
-													<>
-														<Shield size={16} />
-														Mask Personal Info
-													</>
-												)}
-											</button>
-										</div>
+										<button
+											className='bg-secondary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-[#059669] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
+											onClick={() => {
+												navigator.clipboard.writeText(extractedText);
+											}}
+										>
+											Copy Text
+										</button>
 										{isRussianText(extractedText) && (
 											<button
 												className='flex items-center justify-center gap-2 bg-primary text-white border-none px-6 py-3 rounded-xl font-semibold cursor-pointer transition-all w-full hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'

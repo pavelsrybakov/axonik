@@ -22,7 +22,7 @@ const Header = ({ onNavigate, currentView }: HeaderProps) => {
 				>
 					<Brain className='text-primary' size={28} />
 					<span className='bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent'>
-						Axonic.ai
+						Axonik.ai
 					</span>
 				</div>
 				<nav className='flex items-center gap-4 md:gap-8'>

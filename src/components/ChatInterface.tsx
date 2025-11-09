@@ -16,7 +16,7 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			id: '1',
-			text: "Hello! I'm Axonic.ai, your medical AI assistant. How can I help you today?",
+			text: "Hello! I'm Axonik.ai, your medical AI assistant. How can I help you today?",
 			sender: 'ai',
 			timestamp: new Date(),
 		},
@@ -78,7 +78,7 @@ const ChatInterface = ({ onBack }: ChatInterfaceProps) => {
 				</button>
 				<div className='flex-1'>
 					<h2 className='text-2xl md:text-3xl font-bold text-text-primary mb-1'>
-						Axonic.ai Assistant
+						Axonik.ai Assistant
 					</h2>
 					<p className='text-sm text-text-secondary'>
 						Medical AI at your service
