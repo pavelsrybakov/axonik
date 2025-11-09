@@ -6,14 +6,16 @@ import Features from './components/Features';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import OCRTest from './components/OCRTest';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 
-type View = 'home' | 'chat' | 'ocr' | 'consent-declined';
+type View = 'home' | 'chat' | 'ocr' | 'consent-declined' | 'privacy-policy' | 'terms';
 
 function App() {
 	const [currentView, setCurrentView] = useState<View>('home');
 	const [showConsentModal, setShowConsentModal] = useState(false);
 
-	// Check localStorage on initial load to restore consent state
+	// Check consent
 	useEffect(() => {
 		const isAccepted = localStorage.getItem('isAccepted');
 		if (isAccepted === 'true') {
@@ -26,7 +28,7 @@ function App() {
 			// No consent given yet, show modal
 			setShowConsentModal(true);
 		}
-	}, []);
+	}, [currentView]);
 
 	// Handle URL parameters for PWA shortcuts
 	useEffect(() => {
@@ -49,8 +51,15 @@ function App() {
 	};
 
 	// If consent was declined, show the declined page (no header)
-	if (currentView === 'consent-declined') {
-		return <ConsentDeclined />;
+	switch (currentView) {
+		case 'consent-declined':
+			return <ConsentDeclined />;
+		case 'privacy-policy':
+			return <PrivacyPolicy onBack={() => setCurrentView('home')} />;
+		case 'terms':
+			return <TermsOfService onBack={() => setCurrentView('home')} />;
+		default:
+			break;
 	}
 
 	return (
@@ -59,6 +68,14 @@ function App() {
 				<ConsentModal
 					onAccept={handleConsentAccept}
 					onDecline={handleConsentDecline}
+					onNavigateToPrivacy={() => {
+						setShowConsentModal(false);
+						setCurrentView('privacy-policy');
+					}}
+					onNavigateToTerms={() => {
+						setShowConsentModal(false);
+						setCurrentView('terms');
+					}}
 				/>
 			)}
 			<Header

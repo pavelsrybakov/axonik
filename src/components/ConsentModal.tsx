@@ -3,9 +3,16 @@ import { useState, useEffect } from 'react';
 interface ConsentModalProps {
 	onAccept: () => void;
 	onDecline: () => void;
+	onNavigateToPrivacy?: () => void;
+	onNavigateToTerms?: () => void;
 }
 
-export default function ConsentModal({ onAccept, onDecline }: ConsentModalProps) {
+export default function ConsentModal({ 
+	onAccept, 
+	onDecline,
+	onNavigateToPrivacy,
+	onNavigateToTerms,
+}: ConsentModalProps) {
 	const [isVisible, setIsVisible] = useState(false);
 
 	useEffect(() => {
@@ -33,10 +40,10 @@ export default function ConsentModal({ onAccept, onDecline }: ConsentModalProps)
 							By using our website, you agree to our{' '}
 							<a
 								href="#privacy-policy"
-								className="text-blue-600 hover:text-blue-800 underline"
+								className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
 								onClick={(e) => {
 									e.preventDefault();
-									// Link to privacy policy page
+									onNavigateToPrivacy?.();
 								}}
 							>
 								Privacy Policy
@@ -44,10 +51,10 @@ export default function ConsentModal({ onAccept, onDecline }: ConsentModalProps)
 							and{' '}
 							<a
 								href="#terms"
-								className="text-blue-600 hover:text-blue-800 underline"
+								className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
 								onClick={(e) => {
 									e.preventDefault();
-									// Link to terms page
+									onNavigateToTerms?.();
 								}}
 							>
 								Terms of Service
